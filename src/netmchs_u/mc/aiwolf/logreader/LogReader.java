@@ -22,7 +22,7 @@ import org.aiwolf.common.util.Pair;
 public class LogReader {
 	private Map<Integer, Role> roleMap = null;
 	private Set<Integer> coAgents = null;
-	private List<Pair<Role, Role>> coOrder = null; //TODO 最初のCOに変更する
+	private List<Pair<Role, Role>> coOrder = null;
 	private Map<String, Map<Pair<Integer, Integer>, Role>> talkRoleMap = null;
 	
 	private Map<String, Map<Integer, Map<List<?>, Integer>>> counter = null;
@@ -45,6 +45,19 @@ public class LogReader {
 		for(Pair<Role, Role> p: coOrder)
 			countUp(coCount, p);
 		count("coConut", coCount);
+		
+		// CO者の村人側は村人に寄せ、占いと霊能COに絞る
+		Map<Pair<Role, Role>, Integer> coCountForEstimate = new HashMap<Pair<Role, Role>, Integer>();
+		for(Pair<Role, Role> p: coOrder) {
+			if(p.getValue() != Role.MEDIUM && p.getValue() != Role.SEER)
+				continue;
+			Role r = p.getKey();
+			if(r != Role.POSSESSED && r != Role.WEREWOLF)
+				r = Role.VILLAGER;
+			countUp(coCountForEstimate, new Pair<>(r, p.getValue()));
+		}
+		count("coCountForEstimate", coCountForEstimate);
+		
 		count("coOrder", coOrder);
 		
 		count("gameNum", new ArrayList<Object>());
@@ -148,11 +161,9 @@ public class LogReader {
 				count(kind + "Topic", topic);
 				
 				if(content.getTopic().equals(Topic.COMINGOUT)) {
-					if(!content.getRole().equals(Role.VILLAGER)) {
-						if(!coAgents.contains(id)) { // 2回目以降のCOは登録しない
-							coAgents.add(id);
-							coOrder.add(new Pair<Role, Role>(role, content.getRole()));
-						}
+					if(content.getTarget().getAgentIdx() == id && !coAgents.contains(id)) { // 自分自身のCOでない場合や、2回目以降のCOは登録しない
+						coAgents.add(id);
+						coOrder.add(new Pair<Role, Role>(role, content.getRole()));
 					}
 				}
 			}
