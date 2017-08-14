@@ -49,17 +49,37 @@ public class LogReader {
 		// CO者の村人側は村人に寄せ、占いと霊能COに絞る
 		Map<Pair<Role, Role>, Integer> coCountForEstimate = new HashMap<Pair<Role, Role>, Integer>();
 		for(Pair<Role, Role> p: coOrder) {
-			if(p.getValue() != Role.MEDIUM && p.getValue() != Role.SEER)
-				continue;
-			Role r = p.getKey();
-			if(r != Role.POSSESSED && r != Role.WEREWOLF)
-				r = Role.VILLAGER;
-			countUp(coCountForEstimate, new Pair<>(r, p.getValue()));
+			if(p.getValue() == Role.MEDIUM || p.getValue() == Role.SEER) {
+				Role r = p.getKey();
+				if(r != Role.POSSESSED && r != Role.WEREWOLF)
+					r = Role.VILLAGER;
+				countUp(coCountForEstimate, new Pair<>(r, p.getValue()));
+			}
 		}
 		count("coCountForEstimate", coCountForEstimate);
 		
-		count("coOrder", coOrder);
+		// MEDIUMとSEERのパターン
+		Map<Role, Integer> coPatternForEstimate = new HashMap<Role, Integer>();
+		for(Pair<Role, Role> p: coOrder)
+			if(p.getValue() == Role.MEDIUM || p.getValue() == Role.SEER)
+				countUp(coPatternForEstimate, p.getValue());
+		int s = 0, m = 0;
+		if(coPatternForEstimate.containsKey(Role.SEER))
+			s = coPatternForEstimate.get(Role.SEER);
+		if(coPatternForEstimate.containsKey(Role.MEDIUM))
+			m = coPatternForEstimate.get(Role.MEDIUM);
+		String ptn = "S" + s + "M" + m;
 		
+		for(Pair<Role, Role> p: coOrder) {
+			if(p.getValue() == Role.MEDIUM || p.getValue() == Role.SEER) {
+				Role r = p.getKey();
+				if(r != Role.POSSESSED && r != Role.WEREWOLF)
+					r = Role.VILLAGER;
+				count("coPatternForEstimate", ptn + "|" + p.getValue().toString().charAt(0) + "|" + r.toString().charAt(0));
+			}
+		}
+		
+		count("coOrder", coOrder);
 		count("gameNum", new ArrayList<Object>());
 	}
 	
