@@ -71,12 +71,15 @@ public class LogReader {
 		String ptn = "S" + s + "M" + m;
 		
 		for(Pair<Role, Role> p: coOrder) {
-			if(p.getValue() == Role.MEDIUM || p.getValue() == Role.SEER) {
-				Role r = p.getKey();
-				if(r != Role.POSSESSED && r != Role.WEREWOLF)
-					r = Role.VILLAGER;
-				count("coPatternForEstimate", ptn + "|" + p.getValue().toString().charAt(0) + "|" + r.toString().charAt(0));
-			}
+			Role r = p.getKey();
+			if(r != Role.POSSESSED && r != Role.WEREWOLF)
+				r = Role.VILLAGER;
+			
+			char c = p.getValue().toString().charAt(0);
+			if(c != 'M' && c != 'S')
+				c = 'X';
+			
+			count("coPatternForEstimate", ptn + "|" + c + "|" + r.toString().charAt(0));
 		}
 		
 		count("coOrder", coOrder);
